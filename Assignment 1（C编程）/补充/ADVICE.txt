@@ -1,0 +1,43 @@
+Please make sure you understand the concept up to lecture 4 before attempting. This includes:
+- Basic C syntax
+- Header files
+- Makefile
+- Pointer and its application
+- Arrays ( especially 2D array with malloc() )
+- How to free pointer correctly
+- Function pointer is NOT necessary here. (but you can use it if you want)
+
+When you start the assignment, please break the tasks down. Do not try to code the whole thing in one go.
+Do it STEP BY STEP. For every step completed, try compiling them and test them sufficiently. If there is
+any warning, fix them first before continuing to the next step. This will save you a lot of time.
+
+NOTE: If you are familiar with pseudo code, feel free to make one. You don't need to submit the pseudo code.
+
+Here is one example, but you don't have to follow them exactly:
+1.  Start with the main function. Try to read the command line arguments. Your program should be able to check
+    if there are sufficient command line arguments.
+2.  Convert the arguments to integers for <map_row> and <map_col>. You need to check if they satisfy the range
+    requirement.
+3.  If the requirements are satisfied, then you can malloc 2D array with both integers.
+4.  You can check if the arrays are correct by printing it to the terminal. (can use two nested FOR loops)
+    You can initialize the array content with zero for checking purpose.
+5.  At this point, you can start writing the makefile even with one .c file. You can expand the makefile
+    as you go.
+6.  Once you are happy with the 2D array that you create, now try to print the whole map with the border added.
+    Remember, the <map_row> and <map_col> are the playable area. The border is not included.
+7.  You can initialize the 2D array with an empty space char. You can now add the Player and Goal character.
+8.  Try the function to clear the screen and then print the map.
+9.  You can add the road on the even row of the map now. You can create an array to keep track of all the locations
+    of all the cars.
+10. the formula for the amount of the car is : car/road amount = ( <map_row> - 1 ) / 2
+11. Use the random number generator to initialize all the car locations and direction for each road.
+12. In the while loop, try to write an algorithm to accept a single char to update the location of the Player.
+    Everytime the player moves, your program should update the 2D array and reprint it.
+13. Add the winning condition to end the loop when the Player reaches the goal (winning).
+14. If you want, you can also add the losing condition when the player hit any of the car, even when the car
+    is not moving at the moment.
+15. Once you have the winning/losing condition, you can add the feature to make all cars moving back and forth
+    everytime the player moves.
+16. Free any malloc'ed pointer/array before the end of the main function.    
+
+NOTE: Make sure you break down the features in multiple functions on separate .c files. Update your makefile accordingly.

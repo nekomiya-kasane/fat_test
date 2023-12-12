@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "termios.h": "c",
+        "fs.h": "c",
+        "nyuinput.h": "c",
+        "stat.h": "c",
+        "mman.h": "c",
+        "ostream": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}
