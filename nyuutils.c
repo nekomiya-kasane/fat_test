@@ -1,6 +1,10 @@
 ﻿#include "nyuutils.h"
 #include "nyufat32.h"
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 unsigned int hexToInt(char ch)
 {
   if (ch >= '0' && ch <= '9')
@@ -77,7 +81,7 @@ void swap(long* a, long* b) {
   *b = temp;
 }
 
-unsigned long factorial(long n) {
+long factorial(long n) {
   if (n == 0 || n == 1) {
     return 1;
   }
@@ -86,7 +90,7 @@ unsigned long factorial(long n) {
   }
 }
 
-unsigned long calculate_combination(long m, long n) {
+long calculate_combination(long m, long n) {
   if (m < n) {
     return 0;
   }
@@ -99,8 +103,14 @@ void pg_init(PermutationGenerator* pg, long* p, long ps, long c) {
   pg->poolSize = ps;
   pg->choose = c;
 
-  pg->result = malloc(calculate_combination(ps, c) * sizeof(long) * c);
-  pg->resultSize = calculate_combination(ps, c);
+  long total = calculate_combination(ps, c);
+  pg->result = malloc(total * sizeof(long*));
+
+  for (long i = 0; i < total; ++i) {
+    pg->result[i] = malloc(sizeof(long) * c);
+  }
+
+  pg->resultSize = total;
 
   pg->current = -1;
 }
@@ -113,7 +123,7 @@ void generate_permutations(long arr[], long start, long end, long** result, long
     (*count)++;
   }
   else {
-    for (int i = start; i <= end; i++) {
+    for (long i = start; i <= end; i++) {
       swap(&arr[start], &arr[i]);
       generate_permutations(arr, start + 1, end, result, choose, count);
       swap(&arr[start], &arr[i]);

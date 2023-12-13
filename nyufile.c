@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  DiskHandler* disk = dh_open_disk(input->disk);
+  DiskHandler* disk = dh_create(input->disk);
   if (!disk)
   {
     destroy_input(&input);
@@ -107,12 +107,30 @@ int main(int argc, char* argv[])
   {
     print_root_dir(disk);
   }
+
   if (input->op == OP_RECOVER_CONTIGUOUS || input->op == OP_RECOVER_NON_CONTIGUOUS)
   {
     RecoverCommand* rc = rc_create(input->filename, input->sha1, input->op == OP_RECOVER_CONTIGUOUS);
     rc_set_disk(rc, disk);
 
-    rc_recover(rc);
+    RecoverResult res = rc_recover(rc);
+
+    switch (res)
+    {
+    case RR_AMBIGUOUS:
+    {
+      printf("%s: multiple candidates found\n", rc->filename);
+      break;
+    }
+    case RR_NOT_FOUND:
+      printf("%s: file not found\n", rc->filename);
+      break;
+    default:
+      if (rc->sha1)
+        printf("%s: successfully recovered with SHA-1\n", rc->filename);
+      else
+        printf("%s: successfully recovered\n", rc->filename);
+    }
 
     rc_destroy(rc);
   }

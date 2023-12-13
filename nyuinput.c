@@ -1,4 +1,8 @@
 #include "nyuinput.h"
+#include "nyuutils.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 Input* parse_input(int argc, char* argv[])
 {
@@ -93,7 +97,7 @@ Input* parse_input(int argc, char* argv[])
   return input;
 }
 
-void destory_input(Input** input)
+void destroy_input(Input** input)
 {
   if (!input)
     return;

@@ -12,15 +12,16 @@ typedef enum
 
 typedef struct
 {
-  const char* disk;
+  char* disk;
   OperationCode op;
-  const char* filename;
-  const char* sha1;
-  const char* sha1de;
+
+  char* filename;
+  char* sha1;
+  char* sha1de;
 } Input;
 
 Input* parse_input(int argc, char* argv[]);
 
-void destory_input(Input** input);
+void destroy_input(Input** input);
 
 #endif

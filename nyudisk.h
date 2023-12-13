@@ -33,7 +33,7 @@ typedef struct DirEntityNode
   struct DirEntityNode* next;
 } DirEntityNode;
 
-DiskHandler* dh_open_disk(const char* path);
+DiskHandler* dh_create(const char* path);
 
 BootEntry* dh_get_disk_head(DiskHandler* handler);
 
@@ -47,9 +47,11 @@ unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster);
 
 void dh_get_deleted_clusters(DiskHandler* handler, long** clusters, long* count, long except);
 
-void node_destroy(DirEntityNode* node);
+void dh_destroy_disk(DiskHandler* disk);
 
+// Dir Entity
 long de_get_file_start_cluster(DirEntry* entry);
 
+void de_node_destroy(DirEntityNode* node);
 
 #endif

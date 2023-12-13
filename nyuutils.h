@@ -1,6 +1,9 @@
 #ifndef __NYU_UTILS__
 #define __NYU_UTILS__
 
+// Sha1 format
+typedef struct DirEntry DirEntry;
+
 unsigned int hexToInt(char ch);
 
 unsigned int charToByte(char* chs);
@@ -13,10 +16,12 @@ void format_entry_name(const DirEntry* entry, char* buf);
 
 void swap(long* a, long* b);
 
-unsigned long factorial(long n);
+// Combination
+long factorial(long n);
 
-unsigned long calculate_combination(long m, long n);
+long calculate_combination(long m, long n);
 
+// Permutation
 typedef struct PermutationGenerator
 {
   long* pool;

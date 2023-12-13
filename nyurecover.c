@@ -4,6 +4,8 @@
 
 #include <limits.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 RecoverCommand* rc_create(const char* filename, const char* sha1, int isContiguous)
 {

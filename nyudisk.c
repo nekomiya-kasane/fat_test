@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-DiskHandler* dh_open_disk(const char* path)
+DiskHandler* dh_create(const char* path)
 {
   int fd = open(path, O_RDWR);
   if (fd == -1)
@@ -104,12 +104,12 @@ void dh_get_deleted_clusters(DiskHandler* handler, long** clusters, long* count,
   }
 }
 
-void node_destroy(DirEntityNode* node)
+void de_node_destroy(DirEntityNode* node)
 {
   if (!node)
     return;
 
-  node_destroy(node->next);
+  de_node_destroy(node->next);
   free(node);
 }
 
