@@ -43,7 +43,7 @@ long dh_get_next_cluster(DiskHandler* handler, long cluster);
 
 DirEntityNode* dh_get_entries(DiskHandler* handler, long cluster);
 
-unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster);
+unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster, long fatId);
 
 void dh_get_deleted_clusters(DiskHandler* handler, long** clusters, long* count, long except);
 

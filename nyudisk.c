@@ -118,9 +118,10 @@ long de_get_file_start_cluster(DirEntry* entry)
   return (entry->DIR_FstClusHI << 2) | (entry->DIR_FstClusLO);
 }
 
-unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster)
+unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster, long fatId)
 {
-  return (unsigned*)(handler->data + handler->fatAreaByteOffset + cluster * 4);
+  return (unsigned*)(handler->data + handler->fatAreaByteOffset
+    + handler->bootEntry->BPB_FATSz32 * handler->sectorBytes * fatId + cluster * 4);
 }
 
 void dh_destroy_disk(DiskHandler* disk)
