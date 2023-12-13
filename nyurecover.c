@@ -69,120 +69,156 @@ int rc_find_entry(RecoverCommand* rc, DirEntry*** out, long* count, long maxSize
   }
 }
 
-enum RecoverResult rc_recover(RecoverCommand* rc) {
+enum RecoverResult rc_find_right_entry_contiguous(RecoverCommand* rc, DirEntry** entries, long count, DirEntry** out) {
+  if (!rc->sha1) {
+    if (count != 1) {
+      free(entries);
+      return RR_AMBIGUOUS;
+    }
+    else {
+      DirEntry* entry = entries[0];
+      entry->DIR_Name[0] = rc->filename[0];
+
+      unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(entry));
+      *fatRecord = CLUSTER_END;
+    }
+  }
+  else {
+    DirEntry* found = 0;
+    for (int i = 0; i < count; ++i) {
+      DirEntry* entry = entries[i];
+      char* fileCluster = rc->disk->data + dh_get_cluster_offset(rc->disk, de_get_file_start_cluster(entry));
+
+      char sha[SHA_DIGEST_LENGTH];
+      SHA1(fileCluster, entry->DIR_FileSize, sha);
+
+      if (strncmp(sha, rc->sha1, SHA_DIGEST_LENGTH) == 0) {
+        if (!found) {
+          found = entry;
+        }
+        else {
+          free(entries);
+          return RR_AMBIGUOUS;
+        }
+      }
+    }
+
+    if (!found) {
+      return RR_NOT_FOUND;
+    }
+    else {
+      found->DIR_Name[0] = rc->filename[0];
+
+      unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(found));
+      *fatRecord = CLUSTER_END;
+    }
+  }
+}
+
+RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** entries, long count, DirEntry** out, long* clusters, long* clusterCount)
+{
+  PermutationGenerator pgs[5];
+  int pgInitialized[5] = { 0, 0, 0, 0 ,0 };
+
+  long* delClusters = 0;
+  long delCount = 0;
+  dh_get_deleted_clusters(rc->disk, &delClusters, &delCount, -1);
+
+  DirEntry* found = 0;
+  for (int i = 0; i < count; ++i) {
+    DirEntry* entry = entries[i];
+
+    *clusterCount = (long)ceil((double)entry->DIR_FileSize / rc->disk->clusterBytes);
+
+    if (pgInitialized[*clusterCount - 1] == 0) {
+      pg_init(&pgs[*clusterCount - 1], delClusters, delCount, *clusterCount);
+      pgInitialized[*clusterCount - 1] = 1;
+    }
+
+    pg_reset(&pgs[*clusterCount - 1]);
+
+    long* curComb = 0;
+
+    while (curComb = pg_next(&pgs[*clusterCount - 1])) {
+      if (curComb[0] != de_get_file_start_cluster(entry))
+        continue;
+
+      char* mem = malloc(rc->disk->clusterBytes * *clusterCount);
+      char* curMem = mem;
+      for (int j = 0; j < *clusterCount; ++j) {
+        long clu = curComb[j];
+
+        char* fileCluster = rc->disk->data + dh_get_cluster_offset(rc->disk, clu);
+
+        memcpy(curMem, fileCluster, rc->disk->clusterBytes);
+        curMem += rc->disk->clusterBytes;
+      }
+
+      char sha[SHA_DIGEST_LENGTH];
+      SHA1(mem, entry->DIR_FileSize, sha);
+      free(mem);
+
+      if (strncmp(sha, rc->sha1, SHA_DIGEST_LENGTH) == 0) {
+        if (!found) {
+          found = entry;
+        }
+        else {
+          free(delClusters);
+          free(entries);
+          return RR_AMBIGUOUS;
+        }
+      }
+    }
+
+    if (!found) {
+      free(delClusters);
+      return RR_NOT_FOUND;
+    }
+    else {
+      found->DIR_Name[0] = rc->filename[0];
+    }
+  }
+}
+
+RecoverResult rc_recover(RecoverCommand* rc) {
   DirEntry** entries = 0;
   long count = 0;
   if (!rc_find_entry(rc, &entries, &count, rc->isContiguous ? rc->disk->clusterBytes : LONG_MAX) && count)
     return RR_NOT_FOUND;
 
   if (rc->isContiguous) {
-    if (!rc->sha1) {
-      if (count != 1) {
-        free(entries);
-        return RR_AMBIGUOUS;
-      }
-      else {
-        DirEntry* entry = entries[0];
-        entry->DIR_Name[0] = rc->filename[0];
+    DirEntry* out = 0;
+    RecoverResult res = rc_find_right_entry_contiguous(rc, entries, count, &out);
 
-        unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(entry));
-        *fatRecord = CLUSTER_END;
-      }
-    }
-    else {
-      DirEntry* found = 0;
-      for (int i = 0; i < count; ++i) {
-        DirEntry* entry = entries[i];
-        char* fileCluster = rc->disk->data + dh_get_cluster_offset(rc->disk, de_get_file_start_cluster(entry));
+    if (res != RR_SUCCESS)
+      return res;
 
-        char sha[SHA_DIGEST_LENGTH];
-        SHA1(fileCluster, entry->DIR_FileSize, sha);
+    // recover name
+    out->DIR_Name[0] = rc->filename[0];
 
-        if (strncmp(sha, rc->sha1, SHA_DIGEST_LENGTH) == 0) {
-          if (!found) {
-            found = entry;
-          }
-          else {
-            free(entries);
-            return RR_AMBIGUOUS;
-          }
-        }
-      }
-
-      if (!found) {
-        return RR_NOT_FOUND;
-      }
-      else {
-        found->DIR_Name[0] = rc->filename[0];
-
-        unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(found));
-        *fatRecord = CLUSTER_END;
-      }
-    }
+    // recover fat record
+    unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(out));
+    *fatRecord = CLUSTER_END;
   }
-
-  // contiguous
   else {
-    PermutationGenerator pgs[5];
-    int pgInitialized[5] = { 0, 0, 0, 0 ,0 };
+    DirEntry* out = 0;
+    long clusters[5], clusterCount = 0;
+    RecoverResult res = rc_find_right_entry_noncontiguous(rc, entries, count, &out, clusters, &clusterCount);
 
-    long* delClusters = 0;
-    long delCount = 0;
-    dh_get_deleted_clusters(rc->disk, &delClusters, &delCount, -1);
+    if (res != RR_SUCCESS)
+      return res;
 
-    DirEntry* found = 0;
-    for (int i = 0; i < count; ++i) {
-      DirEntry* entry = entries[i];
+    // recover name
+    out->DIR_Name[0] = rc->filename[0];
 
-      long clusterCount = (long)ceil((double)entry->DIR_FileSize / rc->disk->clusterBytes);
-
-      if (pgInitialized[clusterCount - 1] == 0) {
-        pg_init(&pgs[clusterCount - 1], delClusters, delCount, clusterCount);
-        pgInitialized[clusterCount - 1] = 1;
-      }
-
-      pg_reset(&pgs[clusterCount - 1]);
-
-      long* curComb = 0;
-
-      while (curComb = pg_next(&pgs[clusterCount - 1])) {
-        if (curComb[0] != de_get_file_start_cluster(entry))
-          continue;
-
-        char* mem = malloc(rc->disk->clusterBytes * clusterCount);
-        char* curMem = mem;
-        for (int j = 0; j < clusterCount; ++j) {
-          long clu = curComb[j];
-
-          char* fileCluster = rc->disk->data + dh_get_cluster_offset(rc->disk, clu);
-
-          memcpy(curMem, fileCluster, rc->disk->clusterBytes);
-          curMem += rc->disk->clusterBytes;
-        }
-
-        char sha[SHA_DIGEST_LENGTH];
-        SHA1(mem, entry->DIR_FileSize, sha);
-        free(mem);
-
-        if (strncmp(sha, rc->sha1, SHA_DIGEST_LENGTH) == 0) {
-          if (!found) {
-            found = entry;
-          }
-          else {
-            free(delClusters);
-            free(entries);
-            return RR_AMBIGUOUS;
-          }
-        }
-      }
-
-      if (!found) {
-        free(delClusters);
-        return RR_NOT_FOUND;
-      }
-      else {
-        found->DIR_Name[0] = rc->filename[0];
-      }
+    // recover fat records
+    unsigned* fatRecord = 0;
+    for (int i = 0; i < clusterCount; ++i) {
+      fatRecord = dh_get_cluster_record(rc->disk, clusters[i]);
+      if (i == clusterCount - 1)
+        *fatRecord = CLUSTER_END;
+      else
+        *fatRecord = clusters[i + 1];
     }
   }
 }

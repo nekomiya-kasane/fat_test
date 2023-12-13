@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 
   if (input->op == OP_RECOVER_CONTIGUOUS || input->op == OP_RECOVER_NON_CONTIGUOUS)
   {
-    RecoverCommand* rc = rc_create(input->filename, input->sha1, input->op == OP_RECOVER_CONTIGUOUS);
+    RecoverCommand* rc = rc_create(input->filename, input->sha1de, input->op == OP_RECOVER_CONTIGUOUS);
     rc_set_disk(rc, disk);
 
     RecoverResult res = rc_recover(rc);
