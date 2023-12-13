@@ -73,6 +73,7 @@ void format_entry_name(const DirEntry* entry, char* buf)
     buf[i] = entry->DIR_Name[j];
     i++;
   }
+  buf[i] = '\0';
 }
 
 void swap(long* a, long* b) {

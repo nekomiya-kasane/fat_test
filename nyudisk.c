@@ -15,7 +15,7 @@ DiskHandler* dh_create(const char* path)
   int fd = open(path, O_RDWR);
   if (fd == -1)
   {
-    printf("Failed to open disk.\n");
+    //printf("Failed to open disk.\n");
     return 0;
   }
 
@@ -27,8 +27,9 @@ DiskHandler* dh_create(const char* path)
 
   if (handler->data == MAP_FAILED)
   {
-    printf("Failed to map disk.\n");
-    free(handler);
+    //printf("Failed to map disk.\n");
+    close(fd);
+    dh_destroy_disk(handler);
     return 0;
   }
 

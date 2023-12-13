@@ -20,7 +20,8 @@ Input* parse_input(int argc, char* argv[])
     input->disk = argv[1];
     if (argc == 2)
     {
-      succeed = 1;
+      if (argv[1][0] != '-')
+        succeed = 1;
       break;
     }
 

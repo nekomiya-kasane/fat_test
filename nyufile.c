@@ -28,10 +28,10 @@ void print_file_system_info(DiskHandler* handler)
 
   BootEntry* bootEntry = handler->bootEntry;
 
-  printf("Number of FATs = %d", bootEntry->BPB_NumFATs);
-  printf("Number of bytes per sector = %d", bootEntry->BPB_BytsPerSec);
-  printf("Number of sectors per cluster = %d", bootEntry->BPB_SecPerClus);
-  printf("Number of reserved sectors = %d", bootEntry->BPB_RsvdSecCnt);
+  printf("Number of FATs = %d\n", bootEntry->BPB_NumFATs);
+  printf("Number of bytes per sector = %d\n", bootEntry->BPB_BytsPerSec);
+  printf("Number of sectors per cluster = %d\n", bootEntry->BPB_SecPerClus);
+  printf("Number of reserved sectors = %d\n", bootEntry->BPB_RsvdSecCnt);
 }
 
 void print_root_dir(DiskHandler* handler)
@@ -55,12 +55,6 @@ void print_root_dir(DiskHandler* handler)
         continue;
       }
       if (curDir->DIR_Attr == SLOT_LONG_ENTRY) { // long entry
-        //DirLongEntry* curLongDir = (DirLongEntry*)curDir;
-
-        //int isStart = curLongDir->id & LONG_SLOT_ID_MAST;
-        //if (isStart != 1) {
-        //  continue;
-        //}
         continue;
       }
       else {
@@ -94,6 +88,7 @@ int main(int argc, char* argv[])
   DiskHandler* disk = dh_create(input->disk);
   if (!disk)
   {
+    print_usage();
     destroy_input(&input);
     return 1;
   }
@@ -101,14 +96,12 @@ int main(int argc, char* argv[])
   if (input->op == OP_PRINT_INFO)
   {
     print_file_system_info(disk);
-    return 0;
   }
-  if (input->op == OP_LIST_DIR)
+  else if (input->op == OP_LIST_DIR)
   {
     print_root_dir(disk);
   }
-
-  if (input->op == OP_RECOVER_CONTIGUOUS || input->op == OP_RECOVER_NON_CONTIGUOUS)
+  else if (input->op == OP_RECOVER_CONTIGUOUS || input->op == OP_RECOVER_NON_CONTIGUOUS)
   {
     RecoverCommand* rc = rc_create(input->filename, input->sha1de, input->op == OP_RECOVER_CONTIGUOUS);
     rc_set_disk(rc, disk);
@@ -122,14 +115,19 @@ int main(int argc, char* argv[])
       printf("%s: multiple candidates found\n", rc->filename);
       break;
     }
-    case RR_NOT_FOUND:
+    case RR_NOT_FOUND: {
       printf("%s: file not found\n", rc->filename);
       break;
-    default:
+    }
+    case RR_SUCCESS: {
       if (rc->sha1)
         printf("%s: successfully recovered with SHA-1\n", rc->filename);
       else
         printf("%s: successfully recovered\n", rc->filename);
+      break;
+    }
+    default:
+      printf("???");
     }
 
     rc_destroy(rc);
