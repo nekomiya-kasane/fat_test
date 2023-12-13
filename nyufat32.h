@@ -96,6 +96,7 @@ typedef struct DirLongEntry
 #pragma pack(pop)
 
 #define CLUSTER_END 0x0FFFFFFF
+#define CLUSTER_EOC 0x0FFFFFF8
 #define CLUSTER_BAD 0x0FFFFFF7
 #define CLUSTER_MAX 0x0FFFFFEF
 #define CLUSTER_MIN 0x00000002

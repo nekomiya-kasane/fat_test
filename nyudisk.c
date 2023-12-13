@@ -71,7 +71,7 @@ DirEntityNode* dh_get_entries(DiskHandler* handler, long cluster)
 
   DirEntityNode* node = rootNode;
   long nextCluster = dh_get_next_cluster(handler, cluster);
-  while (nextCluster != CLUSTER_END) {
+  while (nextCluster < CLUSTER_EOC) {
     node->next = malloc(sizeof(DirEntityNode));
     node = node->next;
 
