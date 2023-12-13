@@ -10,6 +10,7 @@
 #include "nyuutils.h"
 #include "nyudisk.h"
 #include "nyuinput.h"
+#include "nyurecover.h"
 
 void print_usage()
 {
@@ -41,18 +42,44 @@ void print_root_dir(DiskHandler* handler)
   DirEntityNode* rootEntity = dh_get_entries(handler, handler->bootEntry->BPB_RootClus);
   DirEntityNode* curNode = rootEntity;
 
+  long total = 0;
   while (curNode) {
-    char ch = curNode->entry->DIR_Name[0];
-    if (ch == 0x00) { 
-      break;
-    }
-    if (ch == 0xE5 || ch == ' ') { /* deleted */
-      curNode = curNode->next;
-      continue;
+    for (int i = 0; i < handler->clusterBytes / sizeof(DirEntry); ++i) {
+      DirEntry* curDir = curNode->entry + i;
+
+      char ch = curDir->DIR_Name[0];
+      if (ch == SLOT_EMPTY) {
+        break;
+      }
+      if (ch == SLOT_DELETED || ch == SLOT_NEXT_VALID || ch == ' ') {
+        continue;
+      }
+      if (curDir->DIR_Attr == SLOT_LONG_ENTRY) { // long entry
+        //DirLongEntry* curLongDir = (DirLongEntry*)curDir;
+
+        //int isStart = curLongDir->id & LONG_SLOT_ID_MAST;
+        //if (isStart != 1) {
+        //  continue;
+        //}
+        continue;
+      }
+      else {
+        char buf[12];
+        format_entry_name(curDir, buf);
+
+        total += 1;
+        if (curDir->DIR_Attr == ATTR_SUBDIRECTORY) {
+          printf("%s/ (starting cluster = %d)\n", buf, de_get_file_start_cluster(curDir));
+        }
+        else {
+          printf("%s (size = %d, starting cluster = %d)\n", buf, curDir->DIR_FileSize, de_get_file_start_cluster(curDir));
+        }
+      }
     }
 
-
+    curNode = curNode->next;
   }
+  printf("Total number of entries = %d\n", total);
 }
 
 int main(int argc, char* argv[])
@@ -64,11 +91,10 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  DiskHandler* disk = open_disk(input->disk);
+  DiskHandler* disk = dh_open_disk(input->disk);
   if (!disk)
   {
-    free(input->sha1de);
-    free(input);
+    destroy_input(&input);
     return 1;
   }
 
@@ -81,5 +107,18 @@ int main(int argc, char* argv[])
   {
     print_root_dir(disk);
   }
+  if (input->op == OP_RECOVER_CONTIGUOUS || input->op == OP_RECOVER_NON_CONTIGUOUS)
+  {
+    RecoverCommand* rc = rc_create(input->filename, input->sha1, input->op == OP_RECOVER_CONTIGUOUS);
+    rc_set_disk(rc, disk);
+
+    rc_recover(rc);
+
+    rc_destroy(rc);
+  }
+
+  dh_destroy_disk(disk);
+  destroy_input(&input);
+
   return 0;
 }

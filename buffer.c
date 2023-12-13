@@ -3,20 +3,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-MapBuffer* init_buffers(int row, int col)
+MapBuffer *init_buffers(int row, int col)
 {
-  MapBuffer* map = (MapBuffer*)malloc(sizeof(MapBuffer));
+  MapBuffer *map = (MapBuffer *)malloc(sizeof(MapBuffer));
 
   map->row = row;
   map->col = col;
 
-  map->buf_back = (CellElement*)malloc(map->row * map->col * sizeof(CellElement));
-  map->buf_front = (CellElement*)malloc(map->row * map->col * sizeof(CellElement));
+  map->buf_back = (CellElement *)malloc(map->row * map->col * sizeof(CellElement));
+  map->buf_front = (CellElement *)malloc(map->row * map->col * sizeof(CellElement));
 
   return map;
 }
 
-int set_cell(MapBuffer* map, int row, int col, CellElement ele)
+int set_cell(MapBuffer *map, int row, int col, CellElement ele)
 {
   if (row < 0 || row > map->row - 1 || col < 0 || col > map->col - 1)
   {
@@ -27,7 +27,7 @@ int set_cell(MapBuffer* map, int row, int col, CellElement ele)
   return 1;
 }
 
-CellElement get_cell(MapBuffer* map, int row, int col, int back)
+CellElement get_cell(MapBuffer *map, int row, int col, int back)
 {
   if (row < 0 || row > map->row - 1 || col < 0 || col > map->col - 1)
   {
@@ -36,7 +36,7 @@ CellElement get_cell(MapBuffer* map, int row, int col, int back)
   return (back ? map->buf_back : map->buf_front)[map->col * row + col];
 }
 
-int clear_buffer(MapBuffer* map)
+int clear_buffer(MapBuffer *map)
 {
   int i, j;
   /* clear the map */
@@ -50,14 +50,14 @@ int clear_buffer(MapBuffer* map)
   return 1;
 }
 
-int swap_buffer(MapBuffer* map)
+int swap_buffer(MapBuffer *map)
 {
-  CellElement* tmp = map->buf_back;
+  CellElement *tmp = map->buf_back;
   map->buf_back = map->buf_front;
   map->buf_front = tmp;
 }
 
-int print_buffer(MapBuffer* map)
+int print_buffer(MapBuffer *map)
 {
   int i, j;
 
@@ -80,9 +80,9 @@ int print_buffer(MapBuffer* map)
   return 1;
 }
 
-int destroy_buffer(MapBuffer** map)
+int destroy_buffer(MapBuffer **map)
 {
-  MapBuffer* pmap = *map;
+  MapBuffer *pmap = *map;
   free(pmap->buf_back);
   free(pmap->buf_front);
   free(pmap);

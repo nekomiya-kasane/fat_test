@@ -1,54 +1,55 @@
 #ifndef __NYU_DISK__
 #define __NYU_DISK__
 
-#include <bits/stat.h>
+#include <sys/stat.h>
 
 #include "nyufat32.h"
 
 typedef struct stat DiskStat;
 
-typedef struct DiskHandler
+typedef struct
 {
-    int fd;
+  int fd;
 
-    char *data;
-    int size;
+  char* data;
+  int size;
 
-    DiskStat stat;
+  DiskStat stat;
 
-    /* entries */
-    BootEntry *bootEntry;
-    DirEntry *rootEntry;
+  /* entries */
+  BootEntry* bootEntry;
 
-    /* details */
-    long sectorBytes;
-    long clusterBytes;
-    long fatAreaByteOffset;
-    long dataAreaByteOffset;
-    long rootByteOffset;
+  /* details */
+  long sectorBytes;
+  long clusterBytes;
+  long fatAreaByteOffset;
+  long dataAreaByteOffset;
+  long rootByteOffset;
 } DiskHandler;
 
 typedef struct DirEntityNode
 {
-    DirEntry* entry;
-    DirEntityNode* next;
+  DirEntry* entry;
+  struct DirEntityNode* next;
 } DirEntityNode;
 
-DiskHandler *dh_open_disk();
+DiskHandler* dh_open_disk(const char* path);
 
-BootEntry *dh_get_disk_head(DiskHandler *handler);
+BootEntry* dh_get_disk_head(DiskHandler* handler);
 
-long dh_get_cluster_offset(DiskHandler *handler, long cluster);
+long dh_get_cluster_offset(DiskHandler* handler, long cluster);
 
 long dh_get_next_cluster(DiskHandler* handler, long cluster);
 
 DirEntityNode* dh_get_entries(DiskHandler* handler, long cluster);
 
-#define CLUSTER_END 0x0FFFFFFF
-#define CLUSTER_BAD 0x0FFFFFF7
-#define CLUSTER_MAX 0x0FFFFFEF
-#define CLUSTER_MIN 0x00000002
-#define CLUSTER_RESERVED 0x00000001
-#define CLUSTER_IDLE 0x00000000
+unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster);
+
+void dh_get_deleted_clusters(DiskHandler* handler, long** clusters, long* count, long except);
+
+void node_destroy(DirEntityNode* node);
+
+long de_get_file_start_cluster(DirEntry* entry);
+
 
 #endif

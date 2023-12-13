@@ -93,12 +93,12 @@ Input* parse_input(int argc, char* argv[])
   return input;
 }
 
-void destory_input(Input** input) 
+void destory_input(Input** input)
 {
-    if (!input)
-        return;
+  if (!input)
+    return;
 
-    free((*input)->sha1de);
-    free(*input);
-    *input = 0;
+  free((*input)->sha1de);
+  free(*input);
+  *input = 0;
 }

@@ -21,4 +21,6 @@ typedef struct
 
 Input* parse_input(int argc, char* argv[]);
 
+void destory_input(Input** input);
+
 #endif
