@@ -97,7 +97,7 @@ void dh_get_deleted_clusters(DiskHandler* handler, long** clusters, long* count,
   while (cluster < 23) {
     unsigned* fatEntry = fatRecords + cluster;
     if (*fatEntry == 0 && (except < 0 || *fatEntry != except)) {
-      *clusters = *clusters ? malloc(sizeof(long)) : realloc(*clusters, sizeof(long) * (index + 1));
+      *clusters = *clusters ? realloc(*clusters, sizeof(long) * (index + 1)) : malloc(sizeof(long));
       (*clusters)[index] = cluster;
       index++;
     }

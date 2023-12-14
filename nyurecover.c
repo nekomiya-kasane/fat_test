@@ -148,6 +148,7 @@ RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** e
     }
 
     pg_reset(&pgs[*clusterCount - 1]);
+    pg_generate(pgs);
 
     // for each combination
     long* curComb = 0;
@@ -197,6 +198,7 @@ RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** e
     return RR_NOT_FOUND;
   }
   else {
+    free(delClusters);
     return RR_SUCCESS;
   }
 }
