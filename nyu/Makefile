@@ -1,5 +1,5 @@
 nyufile: disk.o input.o recover.o utils.o file.o
-	cc -o nyufile disk.o input.o recover.o utils.o file.o
+	cc -o nyufile nyudisk.o nyuinput.o nyurecover.o nyuutils.o nyufile.o -lm -lssl -lcrypto
 disk.o: nyudisk.c nyudisk.h
 	cc -c nyudisk.c
 input.o: nyuinput.c nyuinput.h
