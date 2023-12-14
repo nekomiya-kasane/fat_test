@@ -83,7 +83,9 @@ Input* parse_input(int argc, char* argv[])
 
       input->filename = argv[3];
       input->sha1 = argv[5];
-      succeed = 1;
+      input->sha1de = hexToBytes(input->sha1, 40);
+      if (input->sha1de)
+        succeed = 1;
       break;
     }
     break;

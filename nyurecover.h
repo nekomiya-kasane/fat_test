@@ -9,6 +9,7 @@
 extern unsigned char* SHA1(const unsigned char* d, size_t n, unsigned char* md);
 
 typedef enum RecoverResult {
+  RR_UNKNOWN,
   RR_NOT_FOUND,
   RR_AMBIGUOUS,
   RR_SUCCESS

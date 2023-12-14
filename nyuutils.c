@@ -91,6 +91,15 @@ long factorial(long n) {
   }
 }
 
+long calculate_permutation(long m, long n)
+{
+  if (m < n) {
+    return 0;
+  }
+
+  return factorial(m) / factorial(m - n);
+}
+
 long calculate_combination(long m, long n) {
   if (m < n) {
     return 0;
@@ -99,12 +108,31 @@ long calculate_combination(long m, long n) {
   return factorial(m) / (factorial(n) * factorial(m - n));
 }
 
+void generate_permutations(long* a, long n, long k, long i, long** result, long* cur)
+{
+  if (i == 0)
+  {
+    for (int j = n; j < n + k; j++) {
+      result[*cur][j - n] = a[j];
+    }
+    (*cur)++;
+    return;
+  }
+
+  for (int j = 0; j < n; j++)
+  {
+    swap(&a[j], &a[n - 1]);
+    generate_permutations(a, n - 1, k, i - 1, result, cur);
+    swap(&a[j], &a[n - 1]);
+  }
+}
+
 void pg_init(PermutationGenerator* pg, long* p, long ps, long c) {
   pg->pool = p;
   pg->poolSize = ps;
   pg->choose = c;
 
-  long total = calculate_combination(ps, c);
+  long total = calculate_combination(ps, c) * factorial(c);
   pg->result = malloc(total * sizeof(long*));
 
   for (long i = 0; i < total; ++i) {
@@ -116,25 +144,15 @@ void pg_init(PermutationGenerator* pg, long* p, long ps, long c) {
   pg->current = -1;
 }
 
-void generate_permutations(long arr[], long start, long end, long** result, long choose, long* count) {
-  if (start == end) {
-    for (long i = 0; i < choose; i++) {
-      result[*count][i] = arr[i];
-    }
-    (*count)++;
-  }
-  else {
-    for (long i = start; i <= end; i++) {
-      swap(&arr[start], &arr[i]);
-      generate_permutations(arr, start + 1, end, result, choose, count);
-      swap(&arr[start], &arr[i]);
-    }
-  }
-}
-
 void pg_generate(PermutationGenerator* pg) {
   long count = 0;
-  generate_permutations(pg->pool, 0, pg->poolSize - 1, pg->result, pg->choose, &count);
+  long total = calculate_permutation(pg->poolSize, pg->choose);
+  pg->result = malloc(total * sizeof(long*));
+  for (long i = 0; i < total; i++) {
+    pg->result[i] = malloc(sizeof(long) * pg->choose);
+  }
+
+  generate_permutations(pg->pool, pg->poolSize, pg->choose, pg->choose, pg->result, &count);
 }
 
 long* pg_next(PermutationGenerator* pg) {

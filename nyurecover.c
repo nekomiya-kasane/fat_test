@@ -121,7 +121,7 @@ RecoverResult rc_find_right_entry_contiguous(RecoverCommand* rc, DirEntry** entr
 
 RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** entries, long count, DirEntry** out, long* clusters, long* clusterCount)
 {
-  if (rc->sha1)
+  if (!rc->sha1)
   {
     return RR_NOT_FOUND;
   }
@@ -136,7 +136,8 @@ RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** e
 
   // for every possible file
   *out = 0;
-  for (int i = 0; i < count; ++i) {
+  RecoverResult res = RR_UNKNOWN;
+  for (int i = 0; i < count && res == RR_UNKNOWN; ++i) {
     DirEntry* entry = entries[i];
 
     // cluster count needed
@@ -148,7 +149,7 @@ RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** e
     }
 
     pg_reset(&pgs[*clusterCount - 1]);
-    pg_generate(pgs);
+    pg_generate(&pgs[*clusterCount - 1]);
 
     // for each combination
     long* curComb = 0;
@@ -176,31 +177,29 @@ RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** e
       if (strncmp(sha, rc->sha1, SHA_DIGEST_LENGTH) == 0) {
         if (!*out) {
           *out = entry;
+          res = RR_SUCCESS;
+          break;
         }
-        else {
-          for (int i = 0; i < 5; ++i) {
-            if (pgInitialized[i])
-              pg_destroy(&pgs[i]);
-          }
-          free(delClusters);
-          return RR_AMBIGUOUS;
+        else { // cal
+          res = RR_AMBIGUOUS;
         }
       }
     }
   }
 
   if (!*out) {
-    for (int i = 0; i < 5; ++i) {
-      if (pgInitialized[i])
-        pg_destroy(&pgs[i]);
-    }
-    free(delClusters);
     return RR_NOT_FOUND;
   }
   else {
-    free(delClusters);
-    return RR_SUCCESS;
+    res = RR_SUCCESS;
   }
+
+  for (int i = 0; i < 5; ++i) {
+    if (pgInitialized[i])
+      pg_destroy(&pgs[i]);
+  }
+  free(delClusters);
+  return res;
 }
 
 RecoverResult rc_recover(RecoverCommand* rc) {
