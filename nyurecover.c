@@ -64,7 +64,7 @@ int rc_find_entry(RecoverCommand* rc, DirEntry*** out, long* count, long maxSize
         *out = realloc(*out, sizeof(DirEntry*) * (*count + 1));
       }
       (*out)[*count] = curDir;
-      *count++;
+      (*count)++;
     }
     curNode = curNode->next;
   }
@@ -210,6 +210,7 @@ RecoverResult rc_recover(RecoverCommand* rc) {
       unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(out), i);
       *fatRecord = CLUSTER_END;
     }
+    return res;
   }
   else {
     DirEntry* out = 0;
@@ -233,5 +234,6 @@ RecoverResult rc_recover(RecoverCommand* rc) {
           *fatRecord = clusters[i + 1];
       }
     }
+    return res;
   }
 }
