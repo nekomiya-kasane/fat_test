@@ -66,7 +66,9 @@ int rc_find_entry(RecoverCommand* rc, DirEntry*** out, long* count, long maxSize
       (*out)[*count] = curDir;
       *count++;
     }
+    curNode = curNode->next;
   }
+  return *count;
 }
 
 RecoverResult rc_find_right_entry_contiguous(RecoverCommand* rc, DirEntry** entries, long count, DirEntry** out) {
@@ -190,7 +192,7 @@ RecoverResult rc_find_right_entry_noncontiguous(RecoverCommand* rc, DirEntry** e
 RecoverResult rc_recover(RecoverCommand* rc) {
   DirEntry** entries = 0;
   long count = 0;
-  if (!rc_find_entry(rc, &entries, &count, rc->isContiguous ? rc->disk->clusterBytes : LONG_MAX) && count)
+  if (!rc_find_entry(rc, &entries, &count, rc->isContiguous ? rc->disk->clusterBytes : LONG_MAX) || !count)
     return RR_NOT_FOUND;
 
   if (rc->isContiguous) {
