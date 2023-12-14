@@ -52,12 +52,12 @@ typedef struct DirEntry
 {
   unsigned char DIR_Name[8];     // File name
   unsigned char DIR_Ext[3];
-#define	SLOT_EMPTY	0x00		/* slot has never been used */
-#define	SLOT_E5		0x05		/* the real value is 0xe5 */
-#define	SLOT_DELETED	0xe5		/* file in this slot deleted */
-#define SLOT_SPECIAL 0x2e /* special dir */
-#define SLOT_NEXT_VALID 0x41 /* next entry is valid */
-#define SLOT_LONG_ENTRY 0x0f /* long entry */
+#define	SLOT_EMPTY	(char)0x00		/* slot has never been used */
+#define	SLOT_E5		(char)0x05		/* the real value is 0xe5 */
+#define	SLOT_DELETED	(char)0xe5		/* file in this slot deleted */
+#define SLOT_SPECIAL (char)0x2e /* special dir */
+#define SLOT_NEXT_VALID (char)0x41 /* next entry is valid */
+#define SLOT_LONG_ENTRY (char)0x0f /* long entry */
   unsigned char DIR_Attr;         // File attributes
 #define	ATTR_NORMAL	0x00		/* normal file */
 #define	ATTR_READONLY	0x01		/* file is readonly */

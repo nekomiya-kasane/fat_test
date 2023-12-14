@@ -51,7 +51,7 @@ void print_root_dir(DiskHandler* handler)
       if (ch == SLOT_EMPTY) {
         break;
       }
-      if (ch == SLOT_DELETED || ch == SLOT_NEXT_VALID || ch == ' ') {
+      if (ch == SLOT_DELETED/* || ch == SLOT_NEXT_VALID*/ || ch == ' ') {
         continue;
       }
       if (curDir->DIR_Attr == SLOT_LONG_ENTRY) { // long entry
@@ -65,8 +65,11 @@ void print_root_dir(DiskHandler* handler)
         if (curDir->DIR_Attr == ATTR_SUBDIRECTORY) {
           printf("%s/ (starting cluster = %d)\n", buf, de_get_file_start_cluster(curDir));
         }
-        else {
+        else if (curDir->DIR_FileSize) {
           printf("%s (size = %d, starting cluster = %d)\n", buf, curDir->DIR_FileSize, de_get_file_start_cluster(curDir));
+        }
+        else {
+          printf("%s (size = %d)\n", buf, curDir->DIR_FileSize);
         }
       }
     }
