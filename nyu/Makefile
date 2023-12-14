@@ -8,7 +8,7 @@ recover.o: nyurecover.c nyurecover.h
 	cc -c nyurecover.c
 utils.o: nyuutils.c nyuutils.h
 	cc -c nyuutils.c
-file.o: nyufile.c nyufile.h
+file.o: nyufile.c
 	cc -c nyufile.c
-clean :
+clean: \
     rm nyufile nyu*.o
