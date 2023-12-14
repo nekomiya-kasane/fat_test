@@ -92,8 +92,7 @@ invoke "$NYUFILE disk -r FILE2.TXT > myoutputs/4.2 2>&1"
 check_file 4.2 FILE2.TXT
 invoke "$NYUFILE disk -r NOTHING.TXT > myoutputs/4.3 2>&1"
 check_file 4.3 NOTHING.TXT
-
-milestone 5
+qhdamilestone 5
 invoke cp disks/disk4 disk
 invoke "$NYUFILE disk -r FILE1.TXT > myoutputs/5.1 2>&1"
 check_file 5.1 FILE1.TXT

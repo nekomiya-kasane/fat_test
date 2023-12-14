@@ -45,8 +45,8 @@ int rc_find_entry(RecoverCommand* rc, DirEntry*** out, long* count, long maxSize
       if (ch != SLOT_DELETED)
         continue;
 
-      if (curDir->DIR_FileSize > maxSize)
-        continue;
+      //if (curDir->DIR_FileSize > maxSize)
+      //  continue;
 
       char buf[12];
       format_entry_name(curDir, buf);
@@ -68,6 +68,7 @@ int rc_find_entry(RecoverCommand* rc, DirEntry*** out, long* count, long maxSize
     }
     curNode = curNode->next;
   }
+  de_node_destroy(rootEntity);
   return *count;
 }
 
@@ -85,10 +86,21 @@ RecoverResult rc_find_right_entry_contiguous(RecoverCommand* rc, DirEntry** entr
   else {
     for (int i = 0; i < count; ++i) {
       DirEntry* entry = entries[i];
-      char* fileCluster = rc->disk->data + dh_get_cluster_offset(rc->disk, de_get_file_start_cluster(entry));
+
+      long curCluster = de_get_file_start_cluster(entry);
+      long countClusters = (int)ceil((double)entry->DIR_FileSize / rc->disk->clusterBytes);
+      char* mem = malloc(countClusters * rc->disk->clusterBytes);
+      char* curMem = mem;
+      for (int j = 0; j < countClusters; ++j) {
+        char* fileCluster = rc->disk->data + dh_get_cluster_offset(rc->disk, curCluster);
+        memcpy(curMem, fileCluster, rc->disk->clusterBytes);
+        curMem += rc->disk->clusterBytes;
+        curCluster++;
+      }
 
       char sha[SHA_DIGEST_LENGTH];
-      SHA1(fileCluster, entry->DIR_FileSize, sha);
+      SHA1(mem, entry->DIR_FileSize, sha);
+      free(mem);
 
       if (strncmp(sha, rc->sha1, SHA_DIGEST_LENGTH) == 0) {
         if (!*out) {
@@ -206,9 +218,17 @@ RecoverResult rc_recover(RecoverCommand* rc) {
     out->DIR_Name[0] = rc->filename[0];
 
     // recover fat record
-    for (int i = 0; i < 2; ++i) {
-      unsigned* fatRecord = dh_get_cluster_record(rc->disk, de_get_file_start_cluster(out), i);
-      *fatRecord = CLUSTER_END;
+    if (out->DIR_FileSize) {
+      for (int i = 0; i < 2; ++i) {
+        long curCluster = de_get_file_start_cluster(out);
+        for (int j = 0; j < (int)ceil((double)out->DIR_FileSize / rc->disk->clusterBytes) - 1; ++j) {
+          unsigned* fatRecord = dh_get_cluster_record(rc->disk, curCluster, i);
+          *fatRecord = curCluster + 1;
+          curCluster++;
+        }
+        unsigned* fatRecord = dh_get_cluster_record(rc->disk, curCluster, i);
+        *fatRecord = CLUSTER_END;
+      }
     }
     return res;
   }

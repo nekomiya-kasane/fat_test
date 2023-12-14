@@ -14,7 +14,7 @@ Input* parse_input(int argc, char* argv[])
 
   while (1)
   {
-    if (argc < 2 || argc > 5)
+    if (argc < 2 || argc > 6)
       break;
 
     input->disk = argv[1];

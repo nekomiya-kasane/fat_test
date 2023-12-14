@@ -116,7 +116,7 @@ void de_node_destroy(DirEntityNode* node)
 
 long de_get_file_start_cluster(DirEntry* entry)
 {
-  return (entry->DIR_FstClusHI << 2) | (entry->DIR_FstClusLO);
+  return ((0xFF & entry->DIR_FstClusHI) << 2) | (0xFF & entry->DIR_FstClusLO);
 }
 
 unsigned* dh_get_cluster_record(DiskHandler* handler, long cluster, long fatId)
