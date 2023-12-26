@@ -111,11 +111,13 @@ void init_cells(GameData* data)
  */
 GameHandle init_game(int row, int col, int fps)
 {
+  GameData* data = NULL;
+
   /* set random seed */
   initRandom();
 
   /* initialize game data */
-  GameData* data = (GameData*)malloc(sizeof(GameData));
+  data = (GameData*)malloc(sizeof(GameData));
   if (!data)
   {
     return 0;
@@ -202,7 +204,7 @@ int process_input(GameHandle handle)
  */
 int step(GameHandle handle)
 {
-  int i, j;
+  int i;
   GameData* data = (GameData*)handle;
 
   /* update cars */
@@ -257,6 +259,8 @@ int draw(GameHandle handle)
   /* draw the player and goal */
   set_cell(data->map, data->prow, data->pcol, PLAYER);
   set_cell(data->map, data->grow, data->gcol, GOAL);
+
+  return 1;
 }
 
 /**
@@ -265,11 +269,12 @@ int draw(GameHandle handle)
 State run(GameHandle handle)
 {
   GameData* data = (GameData*)handle;
-  time_t start_time = time(0), now;
+  /* time_t start_time = time(0); */
+  int last = 0;
+
   data->state = STATE_GAMING;
 
-  int last = 0;
-  while (1)
+  while (last != 2)
   {
     clear_buffer(data->map);
     draw(handle);
@@ -283,19 +288,15 @@ State run(GameHandle handle)
     printf("Press d to move right\n");
 
     if (last)
-      break;
+      last = 2;
 
-    now = time(0);
-    if (!process_input(handle))
-      continue;
-
-    //newSleep(data->frame * data->elapse - (now - start_time) / 1000);
-    step(handle);
-
-    if (data->state != STATE_GAMING)
+    if (!last && process_input(handle))
     {
-      last = 1;
-    }
+      step(handle);
+
+      if (data->state != STATE_GAMING)
+        last = 1;
+    } 
   }
   return data->state;
 }

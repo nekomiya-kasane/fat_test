@@ -18,22 +18,23 @@ MapBuffer *init_buffers(int row, int col)
 
 int set_cell(MapBuffer *map, int row, int col, CellElement ele)
 {
-  if (row < 0 || row > map->row - 1 || col < 0 || col > map->col - 1)
+  int res = 0;
+  if (!(row < 0 || row > map->row - 1 || col < 0 || col > map->col - 1))
   {
-    return 0; /* wall or out of range */
+    res = 1; /* not wall or out of range */
+	map->buf_back[map->col * row + col] = ele;
   }
-
-  map->buf_back[map->col * row + col] = ele;
-  return 1;
+  return res;
 }
 
 CellElement get_cell(MapBuffer *map, int row, int col, int back)
 {
-  if (row < 0 || row > map->row - 1 || col < 0 || col > map->col - 1)
+  CellElement res = BAD_INDEX;
+  if (!(row < 0 || row > map->row - 1 || col < 0 || col > map->col - 1))
   {
-    return BAD_INDEX; /* out of range */
+    res = (back ? map->buf_back : map->buf_front)[map->col * row + col];/* not out of range */
   }
-  return (back ? map->buf_back : map->buf_front)[map->col * row + col];
+  return res;
 }
 
 int clear_buffer(MapBuffer *map)
@@ -55,11 +56,16 @@ int swap_buffer(MapBuffer *map)
   CellElement *tmp = map->buf_back;
   map->buf_back = map->buf_front;
   map->buf_front = tmp;
+
+  return 1;
 }
 
 int print_buffer(MapBuffer *map)
 {
   int i, j;
+
+  system("clear");
+  system("tput cup 0 0");
 
   for (j = 0; j < map->col + 2; j++)
     printf("*");
