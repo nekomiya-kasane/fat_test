@@ -63,6 +63,7 @@ int print_buffer(MapBuffer *map)
 
   for (j = 0; j < map->col + 2; j++)
     printf("*");
+  printf("\n");
 
   for (i = 0; i < map->row; i++)
   {
@@ -77,6 +78,7 @@ int print_buffer(MapBuffer *map)
 
   for (j = 0; j < map->col + 2; j++)
     printf("*");
+  printf("\n");
   return 1;
 }
 

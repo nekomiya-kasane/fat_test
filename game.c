@@ -9,6 +9,7 @@
 
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
+#define ABS(A) ((A) < 0 ? (-(A)) : (A))
 
 typedef struct
 {
@@ -91,6 +92,7 @@ void init_cells(GameData* data)
     if (rand_car == data->col - 1 && rand_car > 0)
       rand_car = -rand_car;
 
+    data->cars[i] = rand_car;
     set_cell(data->map, get_car_row(i),
       rand_car >= 0 ? rand_car : -rand_car,
       rand_car >= 0 ? CAR_RIGHT : CAR_LEFT);
@@ -186,6 +188,8 @@ int process_input(GameHandle handle)
   case 's': /* down */
     data->prow = MIN(data->prow + 1, data->row - 1);
     break;
+  default:
+    return 0;
   }
   return 1;
 }
@@ -205,9 +209,9 @@ int step(GameHandle handle)
   for (i = 0; i < data->crow; i++)
   {
     /* if the car's oriented right, go one column ahead */
+    data->cars[i]++;
     if (data->cars[i] > 0)
     {
-      data->cars[i]++;
       /* if the car's at the right edge, turn back */
       if (data->cars[i] == data->col - 1)
         data->cars[i] = -data->cars[i];
@@ -215,7 +219,6 @@ int step(GameHandle handle)
     /* if the car's oriented left, go one column back */
     else
     {
-      data->cars[i]--;
       /* if the car's at the left edge, turn back */
       if (data->cars[i] == 0)
         data->cars[i] = -data->cars[i];
@@ -243,17 +246,17 @@ int draw(GameHandle handle)
   int i, j;
   GameData* data = (GameData*)handle;
 
-  /* draw the player and goal */
-  set_cell(data->map, data->prow, data->pcol, PLAYER);
-  set_cell(data->map, data->grow, data->gcol, GOAL);
-
   /* draw cars and the traffic line */
   for (i = 0; i < data->crow; i++)
   {
     for (j = 0; j < data->col; j++)
       set_cell(data->map, get_car_row(i), j, TRAFFIC_LINE);
-    set_cell(data->map, get_car_row(i), data->cars[i], data->cars[i] >= 0 ? CAR_RIGHT : CAR_LEFT);
+    set_cell(data->map, get_car_row(i), ABS(data->cars[i]), data->cars[i] >= 0 ? CAR_RIGHT : CAR_LEFT);
   }
+
+  /* draw the player and goal */
+  set_cell(data->map, data->prow, data->pcol, PLAYER);
+  set_cell(data->map, data->grow, data->gcol, GOAL);
 }
 
 /**
@@ -264,13 +267,10 @@ State run(GameHandle handle)
   GameData* data = (GameData*)handle;
   time_t start_time = time(0), now;
   data->state = STATE_GAMING;
+
+  int last = 0;
   while (1)
   {
-    now = time(0);
-    process_input(handle);
-    newSleep(data->frame * data->elapse - (now - start_time) / 1000);
-    step(handle);
-
     clear_buffer(data->map);
     draw(handle);
 
@@ -282,8 +282,20 @@ State run(GameHandle handle)
     printf("Press a to move left\n");
     printf("Press d to move right\n");
 
-    if (data->state != STATE_GAMING)
+    if (last)
       break;
+
+    now = time(0);
+    if (!process_input(handle))
+      continue;
+
+    //newSleep(data->frame * data->elapse - (now - start_time) / 1000);
+    step(handle);
+
+    if (data->state != STATE_GAMING)
+    {
+      last = 1;
+    }
   }
   return data->state;
 }
